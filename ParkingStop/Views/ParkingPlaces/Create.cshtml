@@ -1,4 +1,5 @@
-﻿@model ParkingStop.Data.ParkingPlace
+﻿@using ParkingStop.Data;
+@model ParkingStop.Data.ParkingPlace
 
 @{
     ViewData["Title"] = "Create";
@@ -38,12 +39,12 @@
             </div>
             <div class="form-group">
                 <label asp-for="Status" class="control-label"></label>
-                <select asp-for="Status" class="form-control"></select>
+                <select asp-for="Status" class="form-control" asp-items="@Html.GetEnumSelectList<Statuss>()"></select>
                 <span asp-validation-for="Status" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <label asp-for="IsInvalid" class="control-label"></label>
-                <select asp-for="IsInvalid" class="form-control"></select>
+                <select asp-for="IsInvalid" class="form-control" asp-items="@Html.GetEnumSelectList<IsInvalid>()"></select>
                 <span asp-validation-for="IsInvalid" class="text-danger"></span>
             </div>
             <div class="form-group">
