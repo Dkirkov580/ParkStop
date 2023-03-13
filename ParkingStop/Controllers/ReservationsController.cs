@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -9,13 +11,16 @@ using ParkingStop.Data;
 
 namespace ParkingStop.Controllers
 {
+    [Authorize]
     public class ReservationsController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly UserManager<User> _userManager;
 
-        public ReservationsController(ApplicationDbContext context)
+        public ReservationsController(ApplicationDbContext context, UserManager<User> userManage)
         {
             _context = context;
+           _userManager= userManage;    
         }
 
         // GET: Reservations
@@ -48,8 +53,9 @@ namespace ParkingStop.Controllers
         // GET: Reservations/Create
         public IActionResult Create()
         {
-            ViewData["ParkingPlaceId"] = new SelectList(_context.ParkingPlaces, "Id", "Id");
-            ViewData["UserId"] = new SelectList(_context.Users, "Id", "Id");
+           ViewData["ParkingPlaceId"] = new SelectList(_context.ParkingPlaces, "Id", "Name");
+           // ViewData["UserId"] = new SelectList(_context.Users, "Id", "Id");
+           
             return View();
         }
 
@@ -58,16 +64,18 @@ namespace ParkingStop.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,DateOn,DateOff,RegNum,Brand,Model,ParkingPlaceId,UserId,RegisterOn")] Reservation reservation)
+        public async Task<IActionResult> Create([Bind("DateOn,DateOff,RegNum,Brand,Model,ParkingPlaceId")] Reservation reservation)
         {
             if (ModelState.IsValid)
             {
-                _context.Add(reservation);
+                 reservation.RegisterOn = DateTime.Now;
+                reservation.UserId = _userManager.GetUserId(User);
+                _context.Reservations.Add(reservation);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["ParkingPlaceId"] = new SelectList(_context.ParkingPlaces, "Id", "Id", reservation.ParkingPlaceId);
-            ViewData["UserId"] = new SelectList(_context.Users, "Id", "Id", reservation.UserId);
+            ViewData["ParkingPlaceId"] = new SelectList(_context.ParkingPlaces, "Id", "Name", reservation.ParkingPlaceId);
+           // ViewData["UserId"] = new SelectList(_context.Users, "Id", "Id", reservation.UserId);
             return View(reservation);
         }
 
@@ -84,8 +92,8 @@ namespace ParkingStop.Controllers
             {
                 return NotFound();
             }
-            ViewData["ParkingPlaceId"] = new SelectList(_context.ParkingPlaces, "Id", "Id", reservation.ParkingPlaceId);
-            ViewData["UserId"] = new SelectList(_context.Users, "Id", "Id", reservation.UserId);
+            ViewData["ParkingPlaceId"] = new SelectList(_context.ParkingPlaces, "Id", "Name", reservation.ParkingPlaceId);
+           // ViewData["UserId"] = new SelectList(_context.Users, "Id", "Id", reservation.UserId);
             return View(reservation);
         }
 
@@ -94,7 +102,7 @@ namespace ParkingStop.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,DateOn,DateOff,RegNum,Brand,Model,ParkingPlaceId,UserId,RegisterOn")] Reservation reservation)
+        public async Task<IActionResult> Edit(int id, [Bind(",DateOn,DateOff,RegNum,Brand,Model,ParkingPlaceId")] Reservation reservation)
         {
             if (id != reservation.Id)
             {
@@ -105,7 +113,9 @@ namespace ParkingStop.Controllers
             {
                 try
                 {
-                    _context.Update(reservation);
+                    reservation.RegisterOn = DateTime.Now;
+                    reservation.UserId = _userManager.GetUserId(User);
+                    _context.Reservations.Update(reservation);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
@@ -121,8 +131,8 @@ namespace ParkingStop.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["ParkingPlaceId"] = new SelectList(_context.ParkingPlaces, "Id", "Id", reservation.ParkingPlaceId);
-            ViewData["UserId"] = new SelectList(_context.Users, "Id", "Id", reservation.UserId);
+            ViewData["ParkingPlaceId"] = new SelectList(_context.ParkingPlaces, "Id", "Name", reservation.ParkingPlaceId);
+           // ViewData["UserId"] = new SelectList(_context.Users, "Id", "Name", reservation.UserId);
             return View(reservation);
         }
 
