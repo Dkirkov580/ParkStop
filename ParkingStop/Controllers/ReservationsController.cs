@@ -17,17 +17,27 @@ namespace ParkingStop.Controllers
         private readonly ApplicationDbContext _context;
         private readonly UserManager<User> _userManager;
 
-        public ReservationsController(ApplicationDbContext context, UserManager<User> userManage)
+        public ReservationsController(ApplicationDbContext context, UserManager<User> userManager)
         {
             _context = context;
-           _userManager= userManage;    
+           _userManager= userManager;    
         }
 
         // GET: Reservations
         public async Task<IActionResult> Index()
         {
-            var applicationDbContext = _context.Reservations.Include(r => r.ParkingPlaces).Include(r => r.Users);
-            return View(await applicationDbContext.ToListAsync());
+            if (User.IsInRole("Admin"))
+            {
+                var applicationDbContext = _context.Reservations.Include(o => o.ParkingPlaces).Include(o => o.Users);
+                return View(await applicationDbContext.ToListAsync());
+            }
+            else
+            {
+                var currentUser = _userManager.GetUserId(User);
+                var applicationDbContext = await _context.Reservations.Include(o => o.ParkingPlaces).Include(o => o.Users)
+                     .Where(x => x.UserId == currentUser.ToString()).ToListAsync();
+                return View(applicationDbContext);
+            }
         }
 
         // GET: Reservations/Details/5
@@ -68,7 +78,7 @@ namespace ParkingStop.Controllers
         {
             if (ModelState.IsValid)
             {
-                 reservation.RegisterOn = DateTime.Now;
+                reservation.RegisterOn = DateTime.Now;
                 reservation.UserId = _userManager.GetUserId(User);
                 _context.Reservations.Add(reservation);
                 await _context.SaveChangesAsync();
@@ -102,7 +112,7 @@ namespace ParkingStop.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind(",DateOn,DateOff,RegNum,Brand,Model,ParkingPlaceId")] Reservation reservation)
+        public async Task<IActionResult> Edit(int id, [Bind("DateOn,DateOff,RegNum,Brand,Model,ParkingPlaceId")] Reservation reservation)
         {
             if (id != reservation.Id)
             {

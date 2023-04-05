@@ -18,5 +18,10 @@ html {
 }
 
 body {
-  margin-bottom: 60px;
+    margin-bottom: 60px;
+    background-image: url(https://img.freepik.com/premium-vector/winding-road-isolated-white-background_153132-272.jpg?w=2000);
+    background-size: cover;
+}
+.transparent11 {
+    background: rgba(255,255,255,0.75);
 }
